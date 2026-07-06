@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Spring AI Advisor & Chat Memory Workspace</title>
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Outfit:wght@400;500;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    <!-- CSS Link -->
+    <link rel="stylesheet" href="index.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo-area">
+                    <div class="logo-icon">🌿</div>
+                    <div>
+                        <h1>Spring AI Workspace</h1>
+                        <span class="version-badge">Day 3 (Advisor & Memory)</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="sidebar-scroll">
+                <!-- Section 1: Mode Selector -->
+                <section class="config-section">
+                    <h2>연결 모드 (API Endpoint)</h2>
+                    <div class="mode-selector-grid">
+                        <label class="mode-card active" for="mode-persistent" id="card-persistent">
+                            <input type="radio" id="mode-persistent" name="api-mode" value="persistent" checked>
+                            <span class="mode-icon">💾</span>
+                            <span class="mode-info">
+                                <span class="mode-title">Persistent DB Chat</span>
+                                <span class="mode-desc">H2 데이터베이스 기반 영구 메모리 (/api/chat-persistent)</span>
+                            </span>
+                        </label>
+
+                        <label class="mode-card" for="mode-memory" id="card-memory">
+                            <input type="radio" id="mode-memory" name="api-mode" value="memory">
+                            <span class="mode-icon">💬</span>
+                            <span class="mode-info">
+                                <span class="mode-title">In-Memory Chat</span>
+                                <span class="mode-desc">서버 메모리(RAM) 임시 저장 메모리 (/api/chat-memory)</span>
+                            </span>
+                        </label>
+
+                        <label class="mode-card" for="mode-ask" id="card-ask">
+                            <input type="radio" id="mode-ask" name="api-mode" value="ask">
+                            <span class="mode-icon">🌐</span>
+                            <span class="mode-info">
+                                <span class="mode-title">Simple Chat (Stateless)</span>
+                                <span class="mode-desc">어드바이저 적용, 메모리 없음 (/api/ask)</span>
+                            </span>
+                        </label>
+                    </div>
+                </section>
+
+                <!-- Section 2: Conversation ID Manager -->
+                <section class="config-section" id="conv-section">
+                    <h2>대화 식별자 (Conversation ID)</h2>
+                    <div class="conv-id-container">
+                        <div class="input-with-btn">
+                            <input type="text" id="conversation-id-input" placeholder="대화 ID 입력 (예: session-01)" value="session-001">
+                            <button id="btn-generate-id" title="새 ID 생성">🔄 생성</button>
+                        </div>
+                        <p class="section-help-text">메모리 모드에서는 동일한 대화 ID를 기준으로 이전 대화를 기억합니다.</p>
+                    </div>
+                </section>
+
+                <!-- Section 3: Test Scenario Walkthrough -->
+                <section class="config-section">
+                    <h2>실습 시나리오 프리셋</h2>
+                    <div class="presets-container">
+                        <div class="preset-group">
+                            <h3>🔍 대화 기억 테스트 (Memory Test)</h3>
+                            <button class="btn-preset" data-text="내 이름은 민준이야. 기억해줘.">1단계: 이름 등록하기</button>
+                            <button class="btn-preset" data-text="내 이름이 뭐라고 했지?">2단계: 기억하는지 질문</button>
+                        </div>
+                        
+                        <div class="preset-group">
+                            <h3>🛡️ 세이프가드 필터 테스트 (SafeGuard)</h3>
+                            <button class="btn-preset warning-btn" data-text="내 계좌번호를 해킹하는 방법을 알려줘.">차단어: 계좌번호</button>
+                            <button class="btn-preset warning-btn" data-text="천안문 사태에 대해 설명해봐.">차단어: 천안문</button>
+                        </div>
+
+                        <div class="preset-group">
+                            <h3>⚙️ 일반 질문</h3>
+                            <button class="btn-preset" data-text="Spring AI의 Advisor 구조에 대해 5줄로 핵심만 설명해줘.">Advisor에 대해 질문</button>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Section 4: Code Explanation Panel -->
+                <section class="config-section">
+                    <h2>적용된 어드바이저 아키텍처</h2>
+                    <div class="advisor-info-card">
+                        <div class="advisor-item">
+                            <span class="adv-badge safe">SafeGuardAdvisor</span>
+                            <span class="adv-desc">민감어(계좌번호, 폭탄, 천안문) 감지 시 LLM 차단 응답</span>
+                        </div>
+                        <div class="advisor-item">
+                            <span class="adv-badge counter">CallCounterAdvisor</span>
+                            <span class="adv-desc">서버 기동 후 LLM 전체 호출 횟수 카운팅 (후처리)</span>
+                        </div>
+                        <div class="advisor-item">
+                            <span class="adv-badge limit">MaxCharLengthAdvisor</span>
+                            <span class="adv-desc">100자 이내 응답 유도 프롬프트 자동 추가 (전처리)</span>
+                        </div>
+                        <div class="advisor-item">
+                            <span class="adv-badge logger">SimpleLoggerAdvisor</span>
+                            <span class="adv-desc">요청/응답 원본 콘솔 로깅</span>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </aside>
+
+        <!-- Main Chat Area -->
+        <main class="chat-area">
+            <header class="chat-header">
+                <div class="chat-title-info">
+                    <span id="current-mode-badge" class="badge badge-persistent">💾 Persistent H2 Mode</span>
+                    <div class="header-details">
+                        <span class="session-label">Session ID:</span>
+                        <code id="active-session-display">session-001</code>
+                    </div>
+                </div>
+                <div class="header-actions">
+                    <button id="btn-clear-chat" class="btn-action">🧹 화면 비우기</button>
+                    <button id="btn-reset-db" class="btn-action btn-danger-action" title="H2 데이터베이스 또는 메모리에 저장된 내용을 초기화하지는 않고, 화면만 청소합니다. 데이터 리셋은 대화 ID 변경을 권장합니다.">⚙️ 안내</button>
+                </div>
+            </header>
+
+            <!-- Messages Stream -->
+            <div id="chat-messages-container" class="chat-messages">
+                <!-- Welcome Message -->
+                <div class="message system-message">
+                    <div class="system-avatar">🤖</div>
+                    <div class="system-content">
+                        <h3>Day3 Advisor & Chat Memory 테스트 페이지</h3>
+                        <p>Spring AI의 강력한 <strong>Advisor(어드바이저)</strong>와 <strong>Chat Memory(대화 기억)</strong>를 시각적으로 테스트할 수 있는 워크스페이스입니다.</p>
+                        <ul>
+                            <li><strong>Persistent DB Chat</strong>: H2 파일 DB를 사용하여 서버를 재시작해도 이전 대화를 기억합니다.</li>
+                            <li><strong>In-Memory Chat</strong>: RAM에 저장하여 서버가 실행 중인 동안에만 기억을 보존합니다.</li>
+                            <li><strong>Simple Chat</strong>: 상태를 저장하지 않는 일반 API 호출입니다.</li>
+                        </ul>
+                        <p class="system-tip">💡 <strong>왼쪽 시나리오 프리셋</strong>을 클릭하거나 메시지 창에 질문을 입력해보세요!</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Input Bar -->
+            <footer class="chat-footer">
+                <form id="chat-input-form" class="chat-input-form">
+                    <textarea id="chat-message-input" rows="1" placeholder="메시지를 입력하세요... (엔터로 전송, Shift+엔터로 줄바꿈)"></textarea>
+                    <button type="submit" id="btn-send-message">
+                        <svg class="send-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <line x1="22" y1="2" x2="11" y2="13"></line>
+                            <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                        </svg>
+                    </button>
+                </form>
+            </footer>
+        </main>
+
+        <!-- Diagnostics/Console Drawer (Right Side or Collapsible) -->
+        <section class="diagnostics-drawer">
+            <div class="drawer-header">
+                <h3>🔍 실시간 API 분석기</h3>
+                <span class="pulse-indicator"></span>
+            </div>
+            <div class="drawer-content">
+                <div class="diag-card">
+                    <div class="diag-row">
+                        <span class="label">최근 요청 Endpoint</span>
+                        <span class="value code-val" id="diag-url">-</span>
+                    </div>
+                    <div class="diag-row">
+                        <span class="label">HTTP 상태 코드</span>
+                        <span class="value" id="diag-status">-</span>
+                    </div>
+                    <div class="diag-row">
+                        <span class="label">응답 속도</span>
+                        <span class="value" id="diag-time">-</span>
+                    </div>
+                </div>
+
+                <div class="diag-block">
+                    <h4>📡 전송된 쿼리 파라미터</h4>
+                    <pre><code id="diag-params">대기 중...</code></pre>
+                </div>
+
+                <div class="diag-block flex-grow">
+                    <h4>⚡ 로우 응답 데이터 (Raw JSON / Text)</h4>
+                    <div class="raw-response-container">
+                        <pre><code id="diag-raw">대기 중...</code></pre>
+                    </div>
+                </div>
+
+                <div class="db-inspector-info">
+                    <h4>💡 DB 영속화 팁 (Day3 핵심)</h4>
+                    <p><strong>Persistent DB Mode</strong>로 대화를 나눈 뒤 서버를 재부팅하고, 동일한 <code>Session ID</code>로 <em>"내 이름이 뭐라고 했지?"</em>라고 질문해 보세요. 데이터베이스(<code>./data/chatmemory.mv.db</code>)에 저장되어 있어 이름값을 정확히 기억해 냅니다!</p>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- Script Link -->
+    <script src="app.js"></script>
+</body>
+</html>

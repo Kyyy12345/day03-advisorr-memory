@@ -10,9 +10,13 @@ import org.springframework.web.bind.annotation.RestController;
 public class AiController {
 
     private final AiService aiService;
+    private final MemoryChatService memoryChatService;
+    private final PersistentChatService persistentChatService;
 
-    public AiController(AiService aiService) {
+    public AiController(AiService aiService, MemoryChatService memoryChatService, PersistentChatService persistentChatService) {
         this.aiService = aiService;
+        this.memoryChatService = memoryChatService;
+        this.persistentChatService = persistentChatService;
     }
 
     @GetMapping("/ask")
@@ -20,5 +24,15 @@ public class AiController {
             @RequestParam String question
             ) {
         return aiService.ask(question);
+    }
+
+    @GetMapping("/chat-memory")
+    public String chatMemory(@RequestParam String question, @RequestParam String conversationId) {
+        return memoryChatService.chat(question, conversationId);
+    }
+
+    @GetMapping("/chat-persistent")
+    public String chatPersistent(@RequestParam String question, @RequestParam String conversationId) {
+        return persistentChatService.chat(question, conversationId);
     }
 }

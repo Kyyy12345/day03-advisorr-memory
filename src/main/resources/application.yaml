@@ -1,14 +1,29 @@
 spring:
   application:
     name: day03-advisorr-memory
+
   ai:
     google:
       genai:
-        api-key: ${GOOGLE_API_KEY:} # 환경변수
+        api-key: ${GOOGLE_API_KEY:}
         chat:
           model: gemini-3.1-flash-lite
           temperature: 0.7
-  #          temperature: 0.1
-  #          top-p: 0.1
-  #          top-k: 1
-  #          max-output-tokens: 5
+    chat:
+      memory:
+        repository:
+          jdbc:
+            initialize-schema: always
+            platform: h2
+
+  datasource:
+    # 💡 스프링 AI가 드라이버를 조기에 감지할 수 있도록 데이터베이스 플랫폼을 강제로 명시합니다.
+    platform: h2
+    url: jdbc:h2:file:./data/chatmemory;AUTO_SERVER=TRUE
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+
+  h2:
+    console:
+      enabled: true
