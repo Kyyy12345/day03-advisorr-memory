@@ -10,18 +10,21 @@ import org.springframework.ai.chat.client.advisor.api.CallAdvisorChain;
 import org.springframework.core.Ordered;
 import org.springframework.stereotype.Component;
 
+import java.util.concurrent.atomic.AtomicInteger;
+
 @Component // 이제 정상적으로 로거가 생성되므로 @Component를 붙여서 스프링 빈으로 등록해도 잘 작동해!
 public class CallCounterAdvisor implements CallAdvisor {
 
     // 2. 앞에 (Logger) 강제 형변환 하던 부분을 지우고 순수 SLF4J 로거로 변경했어.
     private static final Logger log = LoggerFactory.getLogger(CallCounterAdvisor.class);
 
-    @Override
-    public ChatClientResponse adviseCall(ChatClientRequest chatClientRequest, CallAdvisorChain callAdvisorChain) {
-        log.info("[전처리] advisorA 호출");
-        ChatClientResponse response = callAdvisorChain.nextCall(chatClientRequest);
-        log.info("[후처리] advisorA 호출");
+    private final AtomicInteger callCount = new AtomicInteger(0);
 
+    @Override
+    public ChatClientResponse adviseCall(ChatClientRequest request, CallAdvisorChain chain) {
+        ChatClientResponse response = chain.nextCall(request);   // 순수 후처리
+        this.callCount.incrementAndGet();
+        log.info("호출 수 :  " + callCount);
         return response;
     }
 
